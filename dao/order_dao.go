@@ -25,6 +25,6 @@ func (o *Order) GetOrderList() ([]Order, error) {
 }
 
 func (o Order) UpdateOrderStatus(dbLink *gorm.DB, orderId string) error {
-	updates := dbLink.Model(&Order{}).Updates(o).Where("order_id = ?", orderId)
+	updates := dbLink.Model(&Order{}).Where("order_id = ?", orderId).Updates(o)
 	return updates.Error
 }
