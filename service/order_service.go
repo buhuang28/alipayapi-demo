@@ -22,6 +22,10 @@ func AddOrderChan(orderId string, c chan struct{}) {
 	OrderChanMap[orderId] = c
 }
 
+func GetOrderChan(orderId string) chan struct{} {
+	return OrderChanMap[orderId]
+}
+
 func DeleteOrderChan(orderId string) {
 	OrderChanMapLock.Lock()
 	defer OrderChanMapLock.Unlock()
@@ -55,31 +59,29 @@ func CreateOrder(orderId, body string, price float64, platform int32) dto.Result
 			//回调
 			break
 		case <-time.After(time.Minute * 5):
-			//查询支付宝订单支付状态
-			query := AliPayTradeQuery(orderId)
-			var o dao.Order
-			o.BuyerUserId = query.BuyerUserId
-			o.TradeNo = query.TradeNo
-			o.TradeStatus = query.TradeStatus
-			o.BuyerLogonId = query.BuyerLogonId
-			switch query.TradeStatus {
-			case pay_data.ALIPAY_ORDER_SUCCESS:
-				//修改数据库
-				o.OrderStatus = pay_data.PAY_SUCCESS
-			case pay_data.ALIPAY_ORDER_WAIT, pay_data.ALIPAY_ORDER_CLOSE:
-				//修改数据库
-				//其实应该都是返回的待支付的
-				o.OrderStatus = pay_data.PAY_OUTTIME
-			default:
-				//压根就没扫过码的
-				o.OrderStatus = pay_data.PAY_OUTTIME
-			}
-			updateError := o.UpdateOrderStatus(db.DbLink, orderId)
-			if updateError != nil {
-				log.Errorf("更新订单%v错误:%v", orderId, updateError)
-			}
 			close(a)
 			break
+		}
+		var o dao.Order
+		//查询支付宝订单支付状态
+		query := AliPayTradeQuery(orderId)
+		o.BuyerUserId = query.BuyerUserId
+		o.TradeNo = query.TradeNo
+		o.TradeStatus = query.TradeStatus
+		o.BuyerLogonId = query.BuyerLogonId
+		switch query.TradeStatus {
+		case pay_data.ALIPAY_ORDER_SUCCESS:
+			o.OrderStatus = pay_data.PAY_SUCCESS
+		case pay_data.ALIPAY_ORDER_WAIT, pay_data.ALIPAY_ORDER_CLOSE:
+			//其实应该都是返回的待支付的
+			o.OrderStatus = pay_data.PAY_OUTTIME
+		default:
+			//压根就没扫过码的
+			o.OrderStatus = pay_data.PAY_OUTTIME
+		}
+		updateError := o.UpdateOrderStatus(db.DbLink, orderId)
+		if updateError != nil {
+			log.Errorf("更新订单%v错误:%v", orderId, updateError)
 		}
 		DeleteOrderChan(orderId)
 	}()
@@ -104,9 +106,4 @@ func CreateOrder(orderId, body string, price float64, platform int32) dto.Result
 		return result.Error(0, "创建订单失败")
 	}
 	return result.Success("", qrCode)
-}
-
-//回调
-func AliPayCallBack() {
-
 }

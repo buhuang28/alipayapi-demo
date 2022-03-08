@@ -153,5 +153,5 @@ func AliVerifySign(callbackData string) bool {
 	}
 	sort.Strings(signContent)
 	src := strings.Join(signContent, "&")
-	return util.Rsa2PubSign(pay_data.ALI_PIUBLIC_KEY, src, sign)
+	return util.Rsa2PubSign(pay_data.ALI_PUBLIC_KEY, src, sign)
 }

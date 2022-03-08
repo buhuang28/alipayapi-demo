@@ -25,7 +25,7 @@ func NewVMQOrderController() VMQOrderController {
 func (a *VMQOrderController) CreateOrder(c *gin.Context) {
 	var orderDto dto.VMQCreateOrderDto
 	body, _ := ioutil.ReadAll(c.Request.Body)
-	err := json.Unmarshal(body,&orderDto)
+	err := json.Unmarshal(body, &orderDto)
 	if err != nil {
 		log.Info(err)
 		log.Info(orderDto)
@@ -36,7 +36,7 @@ func (a *VMQOrderController) CreateOrder(c *gin.Context) {
 	sign := util.GetSign(orderDto.PayId, orderDto.Param,
 		strconv.FormatInt(orderDto.PayType, 10),
 		fmt.Sprintf("%.2f", orderDto.Price),
-		pay_data.SESSIONKEY)	//这里的 SESSIONKEY 只是一个任意字符串，用于计算MD5
+		pay_data.SESSIONKEY) //这里的 SESSIONKEY 只是一个任意字符串，用于计算MD5
 	if sign != orderDto.Sign {
 		c.JSON(200, nil)
 		log.Info("签名对不上")
@@ -66,15 +66,17 @@ func (a *VMQOrderController) CallBack(c *gin.Context) {
 		return
 	}
 	success := service.AliVerifySign(string(raw))
-	log.Info("回调校验:",success)
+	log.Info("回调校验:", success)
 	if success {
+		orderChan := service.GetOrderChan(callBackData.OutTradeNo)
+		close(orderChan)
 		c.String(200, "success")
 		go func() {
 			for i := 0; i < 10; i++ {
 				ok := Notice(callBackData)
 				if !ok {
 					time.Sleep(time.Minute * 20)
-				}else {
+				} else {
 					return
 				}
 			}
@@ -96,8 +98,8 @@ func Notice(callBackData dto.AliCallBackData) bool {
 	noticeData["sign"] = util.GetSign(callBackData.OutTradeNo, callBackData.Body,
 		"1", fmt.Sprintf("%.2f", float),
 		fmt.Sprintf("%.2f", float), pay_data.SESSIONKEY) //这里的 SESSIONKEY 只是一个任意字符串，用于计算MD5
-	ok, resp := util.GetRequest("http://127.0.0.1:8882/PayCallBackOrder", nil, nil, noticeData)
-	log.Info("回调结果:",ok,string(resp.Data))
+	ok, resp := util.GetRequest("http://127.0.0.1:8883/PayCallBackOrder", nil, nil, noticeData)
+	log.Info("回调结果:", ok, string(resp.Data))
 	if string(resp.Data) != "success" {
 		return false
 	}

@@ -1,8 +1,42 @@
 package pay_data
 
+import "fmt"
+
+var (
+	//是否使用沙箱数据
+	DEV = true
+	//应用私钥
+	APP_PRIVATE_KEY = ""
+	//应用公钥
+	APP_PUBLIC_KEY = ""
+	//支付宝公钥(用于回调鉴定)
+	ALI_PUBLIC_KEY = ""
+	//应用APPID
+	ALIPAY_APP_ID = ""
+	//网关
+	ALIPAY_GATEWAY = ""
+)
+
+func init() {
+	if DEV {
+		APP_PRIVATE_KEY = DEV_ALIPAY_APP_PRIVATE_KEY
+		ALI_PUBLIC_KEY = DEV_ALIPAY_ALI_PUBLIC_KEY
+		ALIPAY_APP_ID = DEV_ALIPAY_APPID
+		ALIPAY_GATEWAY = DEV_ALIPAY_GATEWAY
+		fmt.Println("启用开发者设置")
+	} else {
+		APP_PRIVATE_KEY = REAL_APP_PRIVATE_KEY
+		ALI_PUBLIC_KEY = REAL_ALI_PUBLIC_KEY
+		APP_PUBLIC_KEY = REAL_APP_PUBLIC_KEY
+		ALIPAY_APP_ID = REAL_ALIPAY_APPID
+		ALIPAY_GATEWAY = REAL_ALIPAY_GATEWAY
+		fmt.Println("启用真实环境设置")
+	}
+}
+
 const (
-	ALIPAY_GATEWAY_DEV            = "https://openapi.alipaydev.com/gateway.do"
-	ALIPAY_GATEWAY                = "https://openapi.alipay.com/gateway.do"
+	DEV_ALIPAY_GATEWAY            = "https://openapi.alipaydev.com/gateway.do"
+	REAL_ALIPAY_GATEWAY           = "https://openapi.alipay.com/gateway.do"
 	ALIPAY_TRADE_PRECREATE_METHOD = "alipay.trade.precreate"
 	ALIPAY_TRADE_CLOSE_METHOD     = "alipay.trade.close"
 	ALIPAY_TRADE_QUERY_METHOD     = "alipay.trade.query"
