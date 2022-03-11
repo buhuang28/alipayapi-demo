@@ -4,7 +4,7 @@ import "fmt"
 
 var (
 	//是否使用沙箱数据
-	DEV = true
+	DEV = false
 	//应用私钥
 	APP_PRIVATE_KEY = ""
 	//应用公钥
@@ -25,6 +25,7 @@ func init() {
 		ALIPAY_GATEWAY = DEV_ALIPAY_GATEWAY
 		fmt.Println("启用开发者设置")
 	} else {
+		//这里的替换成自己真实的支付婊应用数据
 		APP_PRIVATE_KEY = REAL_APP_PRIVATE_KEY
 		ALI_PUBLIC_KEY = REAL_ALI_PUBLIC_KEY
 		APP_PUBLIC_KEY = REAL_APP_PUBLIC_KEY

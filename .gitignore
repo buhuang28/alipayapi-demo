@@ -1,3 +1,4 @@
 pay_data/private_data.go
 .idea
 *.log
+/db/db_init.go

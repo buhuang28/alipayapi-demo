@@ -53,6 +53,7 @@ func (a *VMQOrderController) CreateOrder(c *gin.Context) {
 
 //支付回调
 func (a *VMQOrderController) CallBack(c *gin.Context) {
+	log.Info("收到支付回调")
 	raw, err := c.GetRawData()
 	if err != nil {
 		log.Error(err)
@@ -98,7 +99,7 @@ func Notice(callBackData dto.AliCallBackData) bool {
 	noticeData["sign"] = util.GetSign(callBackData.OutTradeNo, callBackData.Body,
 		"1", fmt.Sprintf("%.2f", float),
 		fmt.Sprintf("%.2f", float), pay_data.SESSIONKEY) //这里的 SESSIONKEY 只是一个任意字符串，用于计算MD5
-	ok, resp := util.GetRequest("http://127.0.0.1:8883/PayCallBackOrder", nil, nil, noticeData)
+	ok, resp := util.GetRequest("http://127.0.0.1:8882/PayCallBackOrder", nil, nil, noticeData)
 	log.Info("回调结果:", ok, string(resp.Data))
 	if string(resp.Data) != "success" {
 		return false
